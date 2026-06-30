@@ -80,10 +80,44 @@ body::before { content: ''; position: fixed; inset: 0; background: radial-gradie
 .overlay-dino-img { width: 80px; height: 80px; border-radius: 50%; background:white; object-fit:cover; border: 3px solid rgba(255,209,102,0.6); }
 .period-banner { font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 2px; text-align: center; }
 .dino-dex-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: 100%; }
-.dex-card { background: rgba(0,0,0,0.25); border-radius: 12px; border: 1.5px solid rgba(255,255,255,0.12); padding: 6px 4px; text-align: center; }
+.dex-card { background: rgba(0,0,0,0.25); border-radius: 12px; border: 1.5px solid rgba(255,255,255,0.12); padding: 6px 4px; text-align: center; cursor: default; }
+.dex-card.unlocked { cursor: pointer; transition: transform 0.15s, background 0.15s; }
+.dex-card.unlocked:hover { background: rgba(255,255,255,0.12); transform: scale(1.05); }
 .dex-card img { width: 100%; aspect-ratio:1; object-fit:contain; background:white; border-radius:8px; }
 .dex-card .dex-name { font-size: 10px; font-weight:800; color:#ffd166; margin-top:4px; }
 .dex-card .dex-period { font-size: 8px; color: rgba(255,255,255,0.5); text-transform:uppercase; }
+.dex-card.locked { opacity: 0.55; }
+.dex-card.locked .dex-silhouette { width: 100%; aspect-ratio:1; background: rgba(0,0,0,0.35); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size: 28px; color: rgba(255,255,255,0.3); }
+.dex-card.locked .dex-name { color: rgba(255,255,255,0.4); }
+
+.dex-detail-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 110; padding: 20px;
+}
+.dex-detail-card {
+  background: linear-gradient(160deg, #2d6a4f 0%, #1b4332 100%);
+  border: 2px solid rgba(255,209,102,0.4);
+  border-radius: 20px; padding: 20px; max-width: 360px; width: 100%;
+  max-height: 85vh; overflow-y: auto;
+}
+.dex-detail-img { width: 90px; height: 90px; border-radius: 50%; background: white; object-fit: cover; border: 3px solid #ffd166; display: block; margin: 0 auto 10px; }
+.dex-detail-name { font-family: 'Fredoka One', cursive; font-size: 22px; color: #ffd166; text-align: center; margin-bottom: 4px; }
+.dex-detail-period { font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; text-align: center; letter-spacing: 1px; margin-bottom: 14px; }
+.dex-detail-section-label { font-size: 11px; color: #95d5b2; text-transform: uppercase; letter-spacing: 1px; font-weight: 800; margin-top: 14px; margin-bottom: 4px; }
+.dex-detail-text { font-size: 14px; color: rgba(255,255,255,0.92); line-height: 1.4; }
+.dex-detail-story-title { font-family: 'Fredoka One', cursive; font-size: 15px; color: #ffd166; margin-top: 2px; }
+.dex-detail-close-btn { display: block; margin: 16px auto 0; }
+
+.unlock-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 14px; z-index: 100; padding: 20px;
+}
+.unlock-card-img { width: 130px; height: 130px; border-radius: 50%; background: white; object-fit: cover; border: 4px solid #ffd166; box-shadow: 0 0 30px rgba(255,209,102,0.6); animation: unlock-pop 0.5s ease; }
+@keyframes unlock-pop { 0% { transform: scale(0.3); opacity:0; } 60% { transform: scale(1.15); } 100% { transform: scale(1); opacity:1; } }
+.unlock-title { font-family: 'Fredoka One', cursive; font-size: 26px; color: #ffd166; text-align:center; }
+.unlock-name { font-family: 'Fredoka One', cursive; font-size: 20px; color: #b7e4c7; text-align:center; }
 </style>
 <div id="app">
 <div id="title-screen" class="screen active">
@@ -125,6 +159,7 @@ body::before { content: ''; position: fixed; inset: 0; background: radial-gradie
       <div class="overlay-title" id="overlay-title"></div>
       <div class="stars-display" id="overlay-stars"></div>
       <div class="overlay-sub" id="overlay-sub"></div>
+      <div class="overlay-sub" id="overlay-moral" style="font-weight:400; font-style:italic; color:#ffd166; max-width: 280px;"></div>
       <div class="btn-row">
         <button class="btn" onclick="goHome()">🏠 Home</button>
         <button class="btn primary" id="overlay-next-btn" onclick="nextLevel()">Next Level ▶</button>
@@ -136,6 +171,28 @@ body::before { content: ''; position: fixed; inset: 0; background: radial-gradie
     <button class="btn" onclick="showHint()">💡 Hint</button>
     <button class="btn" onclick="shuffleBoard()">🔀 Shuffle</button>
     <button class="btn" onclick="goHome()">🏠 Home</button>
+  </div>
+</div>
+<div class="unlock-overlay" id="unlock-overlay" style="display:none;" onclick="closeUnlock()">
+  <img class="unlock-card-img" id="unlock-img" src="" alt="">
+  <div class="unlock-title">🎉 New Dino Unlocked!</div>
+  <div class="unlock-name" id="unlock-name"></div>
+  <div class="unlock-name" id="unlock-moral" style="font-size:15px; color:#fff; font-family:'Nunito',sans-serif; font-weight:400; max-width:300px;"></div>
+  <button class="btn primary" onclick="closeUnlock()">Awesome!</button>
+</div>
+<div class="dex-detail-overlay" id="dex-detail-overlay" style="display:none;" onclick="if(event.target===this) closeDexDetail()">
+  <div class="dex-detail-card">
+    <img class="dex-detail-img" id="dex-detail-img" src="" alt="">
+    <div class="dex-detail-name" id="dex-detail-name"></div>
+    <div class="dex-detail-period" id="dex-detail-period"></div>
+    <div class="dex-detail-section-label">🔬 Dino Fact</div>
+    <div class="dex-detail-text" id="dex-detail-fact"></div>
+    <div class="dex-detail-section-label">💡 What They Learn</div>
+    <div class="dex-detail-text" id="dex-detail-moral"></div>
+    <div class="dex-detail-section-label">📖 Their Story</div>
+    <div class="dex-detail-story-title" id="dex-detail-storytitle"></div>
+    <div class="dex-detail-text" id="dex-detail-teaser"></div>
+    <button class="btn primary dex-detail-close-btn" onclick="closeDexDetail()">Close</button>
   </div>
 </div>
 </div>
@@ -157,6 +214,7 @@ const DINOS = [
   { key:'egg',                   name:'Egg',     full:'Dino Egg',                  period:'Special'    },
   { key:'bone',                  name:'Bone',    full:'Fossil Bone',               period:'Special'    },
 ];
+const DINO_STORY = {"plato_plateosaurus": {"fact": "Plato lived 216\u2013199 million years ago in the Triassic Period, making him one of the very first dinosaurs ever! His name means \"flat lizard.\"", "moral": "Plato learns that growing up means saying \"no\" to secrets and \"yes\" to following the rules.", "storyTitle": "Plato's Secret Trouble", "teaser": "Plato gets pulled into a risky secret adventure by a friend \u2014 and discovers why rules are there to keep him safe."}, "shorty_coelophysis": {"fact": "Shorty was a Coelophysis, a fast theropod that walked on two legs like a long-legged bird. A real Coelophysis skull even flew to space on the MIR Space Station in 1998!", "moral": "Shorty learns that he matters, even on his unluckiest days.", "storyTitle": "Shorty's Lucky Star", "teaser": "Convinced bad luck follows him everywhere, Shorty runs away \u2014 and finds out just how loved he really is."}, "babs_barosaurus": {"fact": "Babs is a Barosaurus, a giant long-necked plant-eater from the late Jurassic Period. Her name means \"heavy lizard.\"", "moral": "Babs learns that what's inside matters far more than how you look.", "storyTitle": "Babs' Pain in the Neck", "teaser": "Tired of being teased about her neck, Babs runs away \u2014 and learns the most important part of her is her heart."}, "salty_stegosaurus": {"fact": "Salty is a Stegosaurus, an armored \"roofed lizard\" that lived in big herds during the Jurassic Period.", "moral": "Salty learns that stretching the truth can backfire \u2014 but real friends still have your back.", "storyTitle": "Salty's Fish Tale", "teaser": "Salty loves a good prank, so when real danger shows up, nobody believes him \u2014 at first."}, "iggy_iguanodon": {"fact": "Iggy is an Iguanodon, one of the very first dinosaurs ever named! Its name means \"iguana tooth.\"", "moral": "Iggy learns that the best adventures are the ones you stumble into.", "storyTitle": "Iggy's Running Gag", "teaser": "Bored of being \"just\" an iguanodon, Iggy goes looking for excitement \u2014 and finds something he truly loves."}, "peppy_parasaurolophus": {"fact": "Peppy is a Parasaurolophus, known for its big curvy head crest. Its name means \"near crested lizard.\"", "moral": "Peppy learns that quiet and loud both have the right time and place.", "storyTitle": "Peppy Makes a Ruckus", "teaser": "Peppy's noisiness attracts a hungry T-rex to his herd's valley \u2014 can he fix the mess he made?"}, "tootles_triceratops": {"fact": "Tootles is a Triceratops, with a parrot-like beak and a three-foot frill. Her name means \"three-horned face.\"", "moral": "Tootles learns that caring about others is more important than looking good.", "storyTitle": "Tootles and Olly", "teaser": "Tootles gets stuck in the forest by her own giant horn \u2014 and it takes a brand-new friend to help her see what really matters."}, "skippy_spinosaurus": {"fact": "Skippy is a Spinosaurus, the largest meat-eating dinosaur ever known \u2014 even bigger than T-rex! Its name means \"spine lizard.\"", "moral": "Skippy learns that being creative and never giving up helps you grow.", "storyTitle": "Skippy's Food Fight", "teaser": "Skippy hates fish, so he tries eating plants instead \u2014 but it doesn't go quite as planned."}, "victor_velociraptor": {"fact": "Victor is a Velociraptor \u2014 about the size of a turkey, with a long tail, found in the Gobi Desert. His name means \"swift robber.\"", "moral": "Victor learns that facing your fears gives you more strength than running from them.", "storyTitle": "Sleepless in the Cretaceous", "teaser": "Victor's nightmares keep him from sleeping \u2014 until he learns that facing fear head-on changes everything."}, "gigi_giganotosaurus": {"fact": "Gigi is a Giganotosaurus, the longest meat-eating dinosaur ever discovered! Found in Argentina, her name means \"giant southern reptile.\"", "moral": "Gigi learns she can follow her heart without leaving the people she loves behind.", "storyTitle": "Giganotosaurus Can't Dance", "teaser": "Gigi loves to dance, but her earth-shaking moves keep scaring away her family's food!"}, "benny_brachiosaurus": {"fact": "Benny is a Brachiosaurus, a giant plant-eater from the late Jurassic Period. His name means \"arm lizard.\"", "moral": "Benny learns that trying new things \u2014 even when they flop \u2014 is how you get better.", "storyTitle": "Benny's Snappy Comeback", "teaser": "Benny's new games keep going wrong, but he refuses to give up \u2014 and discovers what makes a game truly fun."}, "artie_apatosaurus": {"fact": "Patsy is an Apatosaurus, one of the biggest herbivores ever \u2014 weighing about 45 tons! Her name means \"deceptive lizard.\"", "moral": "Patsy learns that being brave means standing up for the people you love.", "storyTitle": "A Dino Double Feature: A Bone-thrilling Dinosaur Tale", "teaser": "Patsy must think fast to save herself and her wisecracking friend from becoming a prehistoric dino-dinner!"}};
 const N = DINOS.length;
 const LEVELS = [
   { id:1,  name:'Triassic Beginnings', period:'Triassic',   moves:20, grid:6, dinoSet:[0,1,12],            goals:[{dino:1,count:10}] },
@@ -171,11 +229,29 @@ const LEVELS = [
   { id:10, name:'The Big Smash',       period:'Cretaceous', moves:18, grid:8, dinoSet:[1,4,6,8,10,12,13],  goals: [12,13,1,4,6,8,10].map(i=>({dino:i,count:6})) },
 ];
 let board = [], GRID = 6, currentLevel = null, levelDinoSet = [];
+
 let selected = null, score = 0, moves = 0, busy = false, hintCells = [];
 let goalProgress = [], levelComplete = false;
 let activePU = null;
 let powerups = { bomb:2, meteor:1, fossil:1 };
 let scores = {};
+let pendingUnlocks = [];
+
+// Maps each dino index -> the level id that unlocks it in the Dino-Dex (first level it appears in)
+const DINO_UNLOCK_LEVEL = {};
+LEVELS.forEach(lvl => {
+  lvl.dinoSet.forEach(dinoIdx => {
+    if (dinoIdx < 12 && !(dinoIdx in DINO_UNLOCK_LEVEL)) { // only real dinos, not egg/bone
+      DINO_UNLOCK_LEVEL[dinoIdx] = lvl.id;
+    }
+  });
+});
+function isDinoUnlocked(dinoIdx) {
+  const reqLevel = DINO_UNLOCK_LEVEL[dinoIdx];
+  if (reqLevel === undefined) return true; // egg/bone always "unlocked" visually
+  return !!scores[reqLevel];
+}
+
 function imgSrc(dinoIdx) { return DINO_IMAGES[DINOS[dinoIdx].key]; }
 function loadScores() {
   try { scores = JSON.parse(localStorage.getItem('dks3m_scores_v3') || '{}'); } catch(e) { scores = {}; }
@@ -197,15 +273,49 @@ function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
-function goHome() { renderTitle(); showScreen('title-screen'); }
+function goHome() {
+  if (pendingUnlocks.length > 0) { showNextUnlock(); return; }
+  renderTitle(); showScreen('title-screen');
+}
 function getNextLevel() {
   for (let l of LEVELS) if (!scores[l.id]) return l.id;
   return LEVELS[LEVELS.length-1].id;
 }
 function nextLevel() {
+  if (pendingUnlocks.length > 0) { showNextUnlock(); return; }
   const idx = LEVELS.findIndex(l => l.id === currentLevel.id);
   if (idx < LEVELS.length - 1) startLevel(LEVELS[idx+1].id);
   else goHome();
+}
+function showNextUnlock() {
+  document.getElementById('overlay').style.display = 'none';
+  const dinoIdx = pendingUnlocks.shift();
+  const d = DINOS[dinoIdx];
+  const story = DINO_STORY[d.key];
+  document.getElementById('unlock-img').src = DINO_IMAGES[d.key];
+  document.getElementById('unlock-name').textContent = d.full;
+  document.getElementById('unlock-moral').textContent = story ? story.moral : '';
+  document.getElementById('unlock-overlay').style.display = 'flex';
+}
+function closeUnlock() {
+  document.getElementById('unlock-overlay').style.display = 'none';
+  if (pendingUnlocks.length > 0) { showNextUnlock(); return; }
+  renderTitle(); showScreen('title-screen');
+}
+function showDexDetail(dinoIdx) {
+  const d = DINOS[dinoIdx];
+  const story = DINO_STORY[d.key];
+  document.getElementById('dex-detail-img').src = DINO_IMAGES[d.key];
+  document.getElementById('dex-detail-name').textContent = d.full;
+  document.getElementById('dex-detail-period').textContent = d.period + ' Period';
+  document.getElementById('dex-detail-fact').textContent = story ? story.fact : '';
+  document.getElementById('dex-detail-moral').textContent = story ? story.moral : '';
+  document.getElementById('dex-detail-storytitle').textContent = story ? story.storyTitle : '';
+  document.getElementById('dex-detail-teaser').textContent = story ? story.teaser : '';
+  document.getElementById('dex-detail-overlay').style.display = 'flex';
+}
+function closeDexDetail() {
+  document.getElementById('dex-detail-overlay').style.display = 'none';
 }
 function renderTitle() {
   loadScores();
@@ -228,12 +338,22 @@ function renderTitle() {
     lg.appendChild(btn);
   });
   const dex = document.getElementById('dex-grid');
-  dex.innerHTML = DINOS.map(d => `
-    <div class="dex-card">
-      <img src="${DINO_IMAGES[d.key]}">
-      <div class="dex-name">${d.name}</div>
-      <div class="dex-period">${d.period}</div>
-    </div>`).join('');
+  dex.innerHTML = DINOS.map((d, i) => {
+    const unlocked = isDinoUnlocked(i);
+    if (unlocked) {
+      return `<div class="dex-card unlocked" onclick="showDexDetail(${i})">
+        <img src="${DINO_IMAGES[d.key]}">
+        <div class="dex-name">${d.name}</div>
+        <div class="dex-period">${d.period}</div>
+      </div>`;
+    } else {
+      return `<div class="dex-card locked">
+        <div class="dex-silhouette">❓</div>
+        <div class="dex-name">???</div>
+        <div class="dex-period">L${DINO_UNLOCK_LEVEL[i]} to unlock</div>
+      </div>`;
+    }
+  }).join('');
   const lb = document.getElementById('lb-list');
   const allScores = Object.entries(scores)
     .map(([id, v]) => ({ level: LEVELS.find(l=>l.id==id)?.name || `Level ${id}`, score: v.score, stars: v.stars }))
@@ -507,13 +627,31 @@ function checkWin() {
   const stars = calcStars();
   const bonus = moves * 100;
   score += bonus;
+
+  // Determine which dinos get newly unlocked by completing this level (before saving the score)
+  const newlyUnlocked = Object.entries(DINO_UNLOCK_LEVEL)
+    .filter(([dinoIdx, reqLevel]) => reqLevel === currentLevel.id && !scores[reqLevel])
+    .map(([dinoIdx]) => parseInt(dinoIdx));
+
   recordScore(currentLevel.id, score, stars);
+  pendingUnlocks = newlyUnlocked;
   updateHUD();
   const ov = document.getElementById('overlay');
   document.getElementById('overlay-dino-img').src = imgSrc(goalProgress[0].dino);
   document.getElementById('overlay-title').textContent = stars===3 ? '🎉 Perfect!' : stars===2 ? '🌟 Great Job!' : '✅ Level Clear!';
   document.getElementById('overlay-stars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3-stars);
   document.getElementById('overlay-sub').textContent = `Score: ${score}  |  +${bonus} move bonus!`;
+
+  // Show a moral/lesson line from one of this level's real dino characters (skip egg/bone)
+  const storyDinoGoal = goalProgress.find(g => g.dino < 12 && DINO_STORY[DINOS[g.dino].key]);
+  const moralEl = document.getElementById('overlay-moral');
+  if (storyDinoGoal) {
+    const story = DINO_STORY[DINOS[storyDinoGoal.dino].key];
+    moralEl.textContent = `"${story.moral}"`;
+  } else {
+    moralEl.textContent = '';
+  }
+
   const nextIdx = LEVELS.findIndex(l=>l.id===currentLevel.id);
   document.getElementById('overlay-next-btn').style.display = nextIdx < LEVELS.length-1 ? '' : 'none';
   ov.style.display = 'flex';
@@ -526,6 +664,7 @@ function showGameOver() {
   document.getElementById('overlay-title').textContent = '😢 Out of Moves!';
   document.getElementById('overlay-stars').textContent = '☆☆☆';
   document.getElementById('overlay-sub').textContent = `Score: ${score} — Try again?`;
+  document.getElementById('overlay-moral').textContent = '';
   document.getElementById('overlay-next-btn').style.display = 'none';
   ov.style.display = 'flex';
 }
